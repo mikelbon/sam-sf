@@ -1,0 +1,19 @@
+{
+  "name": "mi-proyecto-sam",
+  "version": "1.0.0",
+  "description": "Stack Serverless con SAM",
+  "type": "commonjs",
+  "scripts": {
+    "build": "tsc",
+    "sam:local": "sam local invoke ValidarDatosFunction --event events/ejemplo-evento.json"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.152",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "@aws-sdk/client-dynamodb": "^3.883.0",
+    "@aws-sdk/client-sfn": "^3.883.0",
+    "aws-xray-sdk-core": "^3.10.3"
+  }
+}

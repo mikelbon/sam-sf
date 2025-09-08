@@ -1,0 +1,132 @@
+{
+    "StartAt": "ValidarDatos",
+    "States": {
+        "ValidarDatos": {
+            "Type": "Task",
+            "Resource": "arn:aws:lambda:${Region}:${AccountId}:function:${ValidarDatosFunction}",
+            "Parameters": {
+                "FunctionName": "mi-proyecto-sam-ValidarDatosFunction",
+                "Payload": {
+                    "monto.$": "$.monto",
+                    "medio.$": "$.medio",
+                    "usuarioId.$": "$.usuarioId"
+                }
+            },
+            "ResultSelector": {
+                "validado.$": "$.Payload.validado",
+                "monto.$": "$.Payload.monto",
+                "medio.$": "$.Payload.medio",
+                "usuarioId.$": "$.Payload.usuarioId"
+            },
+            "ResultPath": "$.validacion",
+            "Next": "MedioDePago",
+            "Catch": [
+                {
+                    "ErrorEquals": [
+                        "States.TaskFailed"
+                    ],
+                    "ResultPath": "$.error",
+                    "Next": "ManejarErrorValidacion"
+                }
+            ]
+        },
+        "ManejarErrorValidacion": {
+            "Type": "Task",
+            "Resource": "arn:aws:lambda:${Region}:${AccountId}:function:${ManejarErrorValidacionFunction}",
+            "Parameters": {
+                "FunctionName": "mi-proyecto-sam-ManejarErrorValidacionFunction",
+                "Payload": {
+                    "Error.$": "$.error"
+                }
+            },
+            "End": true
+        },
+        "MedioDePago": {
+            "Type": "Choice",
+            "Choices": [
+                {
+                    "Variable": "$.validacion.medio",
+                    "StringEquals": "tarjeta",
+                    "Next": "PagoConTarjeta"
+                },
+                {
+                    "Variable": "$.validacion.medio",
+                    "StringEquals": "yape",
+                    "Next": "PagoConYape"
+                }
+            ],
+            "Default": "Fallback"
+        },
+        "PagoConTarjeta": {
+            "Type": "Task",
+            "Resource": "arn:aws:lambda:${Region}:${AccountId}:function:${PagoConTarjetaFunction}",
+            "Parameters": {
+                "FunctionName": "mi-proyecto-sam-PagoConTarjetaFunction",
+                "Payload": {
+                    "monto.$": "$.validacion.monto",
+                    "medio.$": "$.validacion.medio",
+                    "usuarioId.$": "$.validacion.usuarioId"
+                }
+            },
+            "ResultSelector": {
+                "estado.$": "$.Payload.estado",
+                "referencia.$": "$.Payload.referencia",
+                "medio.$": "$.Payload.medio"
+            },
+            "ResultPath": "$.pago",
+            "Next": "ConfirmarTransaccion"
+        },
+        "PagoConYape": {
+            "Type": "Task",
+            "Resource": "arn:aws:lambda:${Region}:${AccountId}:function:${PagoConYapeFunction}",
+            "Parameters": {
+                "FunctionName": "mi-proyecto-sam-PagoConYapeFunction",
+                "Payload": {
+                    "monto.$": "$.validacion.monto",
+                    "medio.$": "$.validacion.medio",
+                    "usuarioId.$": "$.validacion.usuarioId"
+                }
+            },
+            "ResultSelector": {
+                "estado.$": "$.Payload.estado",
+                "referencia.$": "$.Payload.referencia",
+                "medio.$": "$.Payload.medio"
+            },
+            "ResultPath": "$.pago",
+            "Next": "ConfirmarTransaccion"
+        },
+        "ConfirmarTransaccion": {
+            "Type": "Task",
+            "Resource": "arn:aws:lambda:${Region}:${AccountId}:function:${ConfirmarTransaccionFunction}",
+            "Parameters": {
+                "FunctionName": "mi-proyecto-sam-ConfirmarTransaccionFunction",
+                "Payload": {
+                    "estado.$": "$.pago.estado",
+                    "referencia.$": "$.pago.referencia",
+                    "medio.$": "$.pago.medio",
+                    "usuarioId.$": "$.validacion.usuarioId"
+                }
+            },
+            "ResultSelector": {
+                "confirmado.$": "$.Payload.confirmado",
+                "timestamp.$": "$.Payload.timestamp"
+            },
+            "ResultPath": "$.confirmacion",
+            "Next": "NotificarPago"
+        },
+        "NotificarPago": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::sns:publish",
+            "Parameters": {
+                "PhoneNumber": "+51970985953",
+                "Message.$": "States.Format('Pago confirmado para el usuario {} con referencia {}', $.validacion.usuarioId, $.pago.referencia)"
+            },
+            "End": true
+        },
+        "Fallback": {
+            "Type": "Fail",
+            "Error": "MedioDePagoNoSoportado",
+            "Cause": "El medio de pago no está soportado"
+        }
+    }
+}

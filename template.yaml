@@ -1,0 +1,167 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Flujo de pagos narrativo con trazabilidad
+
+Globals:
+  Function:
+    Runtime: nodejs18.x
+    Timeout: 10
+    Tracing: Active
+    MemorySize: 128
+
+Resources:
+  StartExecutionApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: prod
+
+  StartExecutionFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Runtime: nodejs18.x
+      Handler: dist/lambdas/startExecution.handler
+      Events:
+        StartExecution:
+          Type: Api
+          Properties:
+            Path: /start-execution
+            Method: POST
+            RestApiId: !Ref StartExecutionApi
+      Policies:
+        - StepFunctionsExecutionPolicy:
+            StateMachineName: !Ref FlujoPagoStateMachine
+        - Statement:
+            Effect: Allow
+            Action:
+              - states:StartExecution
+            Resource: "*"
+      Environment:
+        Variables:
+          STATE_MACHINE_ARN: !GetAtt FlujoPagoStateMachine.Arn
+
+  AlumnosTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: Alumnos
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+  
+  AulasTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: Aulas
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      BillingMode: PAY_PER_REQUEST
+
+  TransaccionesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: Transacciones
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: referencia
+          AttributeType: S
+        - AttributeName: usuarioId
+          AttributeType: S
+      KeySchema:
+        - AttributeName: referencia
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: UsuarioIdIndex
+          KeySchema:
+            - AttributeName: usuarioId
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+    
+  ValidarDatosFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: mi-proyecto-sam-ValidarDatosFunction
+      Handler: dist/lambdas/validarDatos.handler
+      Events:
+        Validar:
+          Type: Api
+          Properties:
+            Path: /validar
+            Method: post
+
+  PagoConTarjetaFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: mi-proyecto-sam-PagoConTarjetaFunction
+      Handler: dist/lambdas/pagoConTarjeta.handler
+
+  ConfirmarTransaccionFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: mi-proyecto-sam-ConfirmarTransaccionFunction
+      Handler: dist/lambdas/confirmarTransaccion.handler
+      Policies:
+        - DynamoDBCrudPolicy:
+            TableName: !Ref TransaccionesTable
+  PagoConYapeFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: mi-proyecto-sam-PagoConYapeFunction
+      Handler: dist/lambdas/pagoConYape.handler
+  ManejarErrorValidacionFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: mi-proyecto-sam-ManejarErrorValidacionFunction
+      Handler: dist/lambdas/manejarErrorValidacion.handler
+  NotificacionesTopic:
+    Type: AWS::SNS::Topic
+    Properties:
+      TopicName: NotificacionesTopic
+
+
+  FlujoPagoStateMachine:
+    Type: AWS::Serverless::StateMachine
+    Properties:
+      DefinitionUri: src/workflows/flujoPago.asl.json
+      DefinitionSubstitutions:
+        Region: !Ref AWS::Region
+        AccountId: !Ref AWS::AccountId
+        ValidarDatosFunction: !Ref ValidarDatosFunction
+        PagoConTarjetaFunction: !Ref PagoConTarjetaFunction
+        PagoConYapeFunction: !Ref PagoConYapeFunction
+        ConfirmarTransaccionFunction: !Ref ConfirmarTransaccionFunction
+        ManejarErrorValidacionFunction: !Ref ManejarErrorValidacionFunction
+      Tracing:
+        Enabled: true
+      Policies:
+        - LambdaInvokePolicy:
+            FunctionName: !Ref ValidarDatosFunction
+        - LambdaInvokePolicy:
+            FunctionName: !Ref PagoConTarjetaFunction
+        - LambdaInvokePolicy:
+            FunctionName: !Ref PagoConYapeFunction
+        - LambdaInvokePolicy:
+            FunctionName: !Ref ConfirmarTransaccionFunction
+        - LambdaInvokePolicy:
+            FunctionName: !Ref ManejarErrorValidacionFunction
+        - DynamoDBCrudPolicy:
+            TableName: !Ref TransaccionesTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref AlumnosTable
+        - DynamoDBCrudPolicy:
+            TableName: !Ref AulasTable
+        - SNSPublishMessagePolicy:
+            TopicName: !Ref NotificacionesTopic
+        - Statement:
+            Effect: Allow
+            Action:
+              - sns:Publish
+            Resource: "*"
+        
