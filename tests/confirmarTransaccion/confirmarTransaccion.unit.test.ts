@@ -19,9 +19,11 @@ describe("ConfirmarTransaccionFunction", () => {
       body: JSON.stringify({ referencia: "TX123" }),
     };
 
-    const result = await handler(event as any);
-    expect(result.statusCode).toBe(200);
-    expect(JSON.parse(result.body).estado).toBe("confirmado");
+    const result = await handler(event);
+    expect(result.Payload.confirmado).toBe(true);
+    expect(result.Payload.referencia).toBeDefined();
+    expect(result.Payload.medio).toMatch(/tarjeta|yape/i);
+    expect(result.Payload.timestamp).toMatch(/\d{4}-\d{2}-\d{2}T/);
   });
 
   it("retorna error si no existe la transacción", async () => {
