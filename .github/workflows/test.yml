@@ -1,0 +1,39 @@
+name: Ejecutar pruebas unitarias
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    name: 🧪 Pruebas Jest troll-proof
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 📥 Checkout del código
+        uses: actions/checkout@v3
+
+      - name: 🧰 Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+
+      - name: 📦 Instalar dependencias
+        run: npm install
+
+      - name: 🧪 Ejecutar pruebas unitarias
+        run: npm test
+
+      - name: 📊 Reporte de cobertura (opcional)
+        run: |
+          npm run test -- --coverage
+        continue-on-error: true
+
+      - name: 📤 Subir resultados (opcional)
+        if: success()
+        uses: actions/upload-artifact@v3
+        with:
+          name: cobertura-jest
+          path: coverage/

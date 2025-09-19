@@ -5,10 +5,15 @@
   "type": "commonjs",
   "scripts": {
     "build": "tsc",
-    "sam:local": "sam local invoke ValidarDatosFunction --event events/ejemplo-evento.json"
+    "sam:local": "sam local invoke ValidarDatosFunction --event events/ejemplo-evento.json",
+    "test": "jest"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.152",
+    "@types/jest": "^30.0.0",
+    "aws-sdk-client-mock": "^4.1.0",
+    "jest": "^30.1.3",
+    "ts-jest": "^29.4.3",
     "typescript": "^5.3.3"
   },
   "dependencies": {
