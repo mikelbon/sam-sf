@@ -10,9 +10,8 @@ describe("ValidarDatosFunction", () => {
       }),
     };
 
-    const result = await handler(event as any);
-    expect(result.statusCode).toBe(200);
-    expect(JSON.parse(result.body).estado).toBe("validado");
+    const result = await handler(event);
+    expect(result.Payload.estado).toBe('validado');
   });
 
   it("debe retornar error si falta alumnoId", async () => {
