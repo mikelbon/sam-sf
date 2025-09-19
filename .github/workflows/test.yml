@@ -8,7 +8,7 @@ on:
 
 jobs:
   test:
-    name: 🧪 Pruebas Jest troll-proof
+    name: 🧪 Pruebas Jest de mi proyecto sam
     runs-on: ubuntu-latest
 
     steps:

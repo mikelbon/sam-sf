@@ -1,4 +1,4 @@
-import { handler } from "../../../src/lambdas/manejarErrorValidacion";
+import { handler } from "../../src/lambdas/manejarErrorValidacion";
 import { mockClient } from "aws-sdk-client-mock";
 import { SNSClient, PublishCommand } from "@aws-sdk/client-sns";
 
