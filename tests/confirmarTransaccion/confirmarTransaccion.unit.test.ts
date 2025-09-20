@@ -1,6 +1,7 @@
 import { handler } from "../../src/lambdas/confirmarTransaccion";
 import { mockClient } from "aws-sdk-client-mock";
 import { DynamoDBDocumentClient, GetCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBClient, PutItemCommand } from "@aws-sdk/client-dynamodb";
 
 const ddbMock = mockClient(DynamoDBDocumentClient);
 
