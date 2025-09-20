@@ -1,29 +1,55 @@
 import { handler } from "../../src/lambdas/validarDatos";
 
 describe("ValidarDatosFunction", () => {
-  it("debe retornar OK si el payload es válido", async () => {
+  it("retorna validado si el payload es correcto", async () => {
     const event = {
-      body: JSON.stringify({
-        alumnoId: "123",
-        monto: 100,
-        metodo: "tarjeta",
-      }),
+      Payload: {
+        monto: 150,
+        medio: "tarjeta",
+        usuarioId: "U123",
+      },
     };
 
     const result = await handler(event);
-    expect(result.Payload.estado).toBe('validado');
+    expect(result.Payload.validado).toBe(true);
+    expect(result.Payload.monto).toBe(150);
+    expect(result.Payload.medio).toBe("tarjeta");
+    expect(result.Payload.usuarioId).toBe("U123");
   });
 
-  it("debe retornar error si falta alumnoId", async () => {
+  it("lanza error si el monto es inválido", async () => {
     const event = {
-      body: JSON.stringify({
-        monto: 100,
-        metodo: "tarjeta",
-      }),
+      Payload: {
+        monto: -10,
+        medio: "tarjeta",
+        usuarioId: "U123",
+      },
     };
 
-    const result = await handler(event as any);
-    expect(result.statusCode).toBe(400);
-    expect(JSON.parse(result.body).mensaje).toMatch(/alumnoId requerido/i);
+    await expect(handler(event)).rejects.toThrow("Monto inválido");
+  });
+
+  it("lanza error si el medio no es soportado", async () => {
+    const event = {
+      Payload: {
+        monto: 100,
+        medio: "efectivo",
+        usuarioId: "U123",
+      },
+    };
+
+    await expect(handler(event)).rejects.toThrow(/Medio de pago no soportado/i);
+  });
+
+  it("lanza error si el usuarioId está vacío", async () => {
+    const event = {
+      Payload: {
+        monto: 100,
+        medio: "yape",
+        usuarioId: "",
+      },
+    };
+
+    await expect(handler(event)).rejects.toThrow(/Usuario no identificado/i);
   });
 });
