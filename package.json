@@ -6,7 +6,7 @@
   "scripts": {
     "build": "tsc",
     "sam:local": "sam local invoke ValidarDatosFunction --event events/ejemplo-evento.json",
-    "test": "jest"
+    "test": "jest --coverage"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.152",
