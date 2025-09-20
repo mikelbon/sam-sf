@@ -1,8 +1,8 @@
-import { handler } from "../../src/lambdas/confirmarTransaccion";
+import { handler } from "../../lambdas/confirmarTransaccion";
 import { mockClient } from "aws-sdk-client-mock";
 import { DynamoDBDocumentClient, GetCommand } from "@aws-sdk/lib-dynamodb";
 import { DynamoDBClient, PutItemCommand } from "@aws-sdk/client-dynamodb";
-import { ConfirmacionInput } from "../../src/types";
+import { ConfirmacionInput } from "../../types";
 
 const ddbMock = mockClient(DynamoDBClient);
 
@@ -18,7 +18,7 @@ describe("ConfirmarTransaccionFunction", () => {
       Payload: {
         referencia: "TX123",
         medio: "tarjeta",
-        estado: "aprobado", // ✅ literal
+        estado: "aprobado",
         usuarioId: "U456",
       },
     };

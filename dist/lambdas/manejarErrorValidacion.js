@@ -16,7 +16,7 @@ const handler = async (event) => {
     // Aquí podrías loguear el error, enviarlo a SNS, o simplemente devolverlo
     return {
         manejado: true,
-        mensaje
+        mensaje,
     };
 };
 exports.handler = handler;

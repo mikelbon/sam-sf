@@ -1,5 +1,5 @@
-import { handler } from "../../src/lambdas/pagoConTarjeta";
-import { PagoInput } from "../../src/types";
+import { handler } from "../../lambdas/pagoConTarjeta";
+import { PagoInput } from "../../types";
 
 describe("PagoConTarjetaFunction", () => {
   it("procesa pago exitoso con tarjeta válida", async () => {

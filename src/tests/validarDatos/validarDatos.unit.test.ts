@@ -1,4 +1,4 @@
-import { handler } from "../../src/lambdas/validarDatos";
+import { handler } from "../../lambdas/validarDatos";
 
 describe("ValidarDatosFunction", () => {
   it("retorna validado si el payload es correcto", async () => {
