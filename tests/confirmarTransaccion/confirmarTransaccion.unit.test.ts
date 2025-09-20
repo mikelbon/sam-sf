@@ -2,6 +2,7 @@ import { handler } from "../../src/lambdas/confirmarTransaccion";
 import { mockClient } from "aws-sdk-client-mock";
 import { DynamoDBDocumentClient, GetCommand } from "@aws-sdk/lib-dynamodb";
 import { DynamoDBClient, PutItemCommand } from "@aws-sdk/client-dynamodb";
+import { ConfirmacionInput } from "../../src/types";
 
 const ddbMock = mockClient(DynamoDBDocumentClient);
 
@@ -13,11 +14,11 @@ describe("ConfirmarTransaccionFunction", () => {
   it("confirma transacción válida y registra en DynamoDB", async () => {
     ddbMock.on(PutItemCommand).resolves({});
 
-    const event = {
+    const event: { Payload: ConfirmacionInput } = {
       Payload: {
         referencia: "TX123",
         medio: "tarjeta",
-        estado: "aprobado",
+        estado: "aprobado", // ✅ literal
         usuarioId: "U456",
       },
     };
@@ -41,7 +42,7 @@ describe("ConfirmarTransaccionFunction", () => {
   });
 
   it("lanza error si el estado no es aprobado", async () => {
-    const event = {
+    const event: { Payload: ConfirmacionInput } = {
       Payload: {
         referencia: "TX999",
         medio: "yape",
