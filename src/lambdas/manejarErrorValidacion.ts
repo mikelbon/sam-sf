@@ -3,7 +3,7 @@ import { ErrorPayload, ErrorResponse, ParsedCause } from "../types";
 export const handler = async (event: ErrorPayload): Promise<ErrorResponse> => {
   const { Error, Cause } = event;
 
-   let mensaje = typeof Error === "string" ? Error : "Error desconocido";
+  let mensaje = typeof Error === "string" ? Error : "Error desconocido";
 
   try {
     if (Cause && typeof Cause === "string") {
@@ -17,6 +17,6 @@ export const handler = async (event: ErrorPayload): Promise<ErrorResponse> => {
   // Aquí podrías loguear el error, enviarlo a SNS, o simplemente devolverlo
   return {
     manejado: true,
-    mensaje
+    mensaje,
   };
 };

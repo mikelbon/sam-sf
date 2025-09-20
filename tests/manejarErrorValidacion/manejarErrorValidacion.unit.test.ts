@@ -40,7 +40,7 @@ describe("ManejarErrorValidacionFunction", () => {
 
   it("retorna mensaje por defecto si Error no es string", async () => {
     const event = {
-      Error: { tipo: "fallo" },
+      Error: { tipo: "fallo" } as unknown as string, // 👈 cast forzado
       Cause: "",
     };
 
