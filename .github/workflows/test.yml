@@ -30,7 +30,7 @@ jobs:
       - name: Instalar ts-node para notificación
         run: npm install --save-dev ts-node
       - name: Notificar a Slack con cobertura
-        run: npx ts-node notifySlack.ts
+        run: npx ts-node src/notifySlack.ts
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           GITHUB_REPOSITORY: ${{ github.repository }}
