@@ -1,45 +1,48 @@
+import fs from "fs";
 import https from "https";
 
-interface SlackMessage {
-  text: string;
-}
-
 const webhookUrl = process.env.SLACK_WEBHOOK_URL;
+if (!webhookUrl) throw new Error("SLACK_WEBHOOK_URL no está definido");
 
-if (!webhookUrl) {
-  throw new Error(
-    "SLACK_WEBHOOK_URL no está definido en las variables de entorno."
-  );
-}
+const coveragePath = "coverage/coverage-summary.json";
+const coverageRaw = fs.readFileSync(coveragePath, "utf8");
+const coverage = JSON.parse(coverageRaw);
 
-const message: SlackMessage = {
-  text: "✅ *Tests completados exitosamente.*\nCobertura: 100% líneas, 96.42% branches.\n🧪 Troll-proof total, Miguel 💪",
+const { lines, branches, functions, statements } = coverage.total;
+
+const message = {
+  text:
+    `🧪 *Tests completados*\n` +
+    `📊 *Cobertura:*\n` +
+    `• Líneas: ${lines.pct}%\n` +
+    `• Branches: ${branches.pct}%\n` +
+    `• Funciones: ${functions.pct}%\n` +
+    `• Statements: ${statements.pct}%\n` +
+    `✅ Repo: \`${process.env.GITHUB_REPOSITORY}\`\n` +
+    `🌿 Branch: \`${process.env.GITHUB_REF_NAME}\`\n` +
+    `👤 Autor: \`${process.env.GITHUB_ACTOR}\``,
 };
 
-const postToSlack = (payload: SlackMessage): void => {
-  const data = JSON.stringify(payload);
-  const url = new URL(webhookUrl);
+const data = JSON.stringify(message);
+const url = new URL(webhookUrl);
 
-  const options: https.RequestOptions = {
-    hostname: url.hostname,
-    path: url.pathname + url.search,
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Content-Length": Buffer.byteLength(data),
-    },
-  };
-
-  const req = https.request(options, (res) => {
-    console.log(`Slack respondió con status: ${res.statusCode}`);
-  });
-
-  req.on("error", (error) => {
-    console.error("Error al notificar a Slack:", error);
-  });
-
-  req.write(data);
-  req.end();
+const options: https.RequestOptions = {
+  hostname: url.hostname,
+  path: url.pathname + url.search,
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "Content-Length": Buffer.byteLength(data),
+  },
 };
 
-postToSlack(message);
+const req = https.request(options, (res) => {
+  console.log(`Slack respondió con status: ${res.statusCode}`);
+});
+
+req.on("error", (error) => {
+  console.error("Error al notificar a Slack:", error);
+});
+
+req.write(data);
+req.end();

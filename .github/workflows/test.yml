@@ -26,19 +26,13 @@ jobs:
 
       - name: 🧪 Ejecutar pruebas unitarias
         run: npm test
-
-      - name: Notificar a Slack si las pruebas pasan
-        if: success()
-        run: |
-          curl -X POST -H 'Content-type: application/json' \
-          --data '{"text":"✅ *Tests pasaron en `${{ github.repository }}`*\nBranch: `${{ github.ref_name }}`\nAutor: `${{ github.actor }}`\n🧪 Troll-proof total, Miguel 💪"}' \
-          ${{ secrets.SLACK_WEBHOOK_URL }}
-      - name: Notificar a Slack si las pruebas fallan
-        if: failure()
-        run: |
-          curl -X POST -H 'Content-type: application/json' \
-          --data '{"text":"❌ *Tests fallaron en `${{ github.repository }}`*\nBranch: `${{ github.ref_name }}`\nAutor: `${{ github.actor }}`\nRevisar cobertura y errores 🐛"}' \
-          ${{ secrets.SLACK_WEBHOOK_URL }}
+      - name: Notificar a Slack con cobertura
+        run: npx ts-node notifySlack.ts
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+          GITHUB_ACTOR: ${{ github.actor }}
 
       - name: 📊 Reporte de cobertura (opcional)
         run: |
