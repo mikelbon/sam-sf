@@ -3,7 +3,10 @@ import { DynamoDBClient, PutItemCommand } from "@aws-sdk/client-dynamodb";
 import { captureAWSv3Client } from "aws-xray-sdk-core";
 
 // Activamos trazabilidad si estás usando X-Ray
-const dynamo = captureAWSv3Client(new DynamoDBClient({}));
+//const dynamo = captureAWSv3Client(new DynamoDBClient({}));
+
+const rawClient = new DynamoDBClient({});
+const dynamo = captureAWSv3Client(rawClient);
 
 export const handler = async (event: {Payload:ConfirmacionInput}): Promise<{Payload:ConfirmacionOutput}> => {
   console.log("Evento recibido:", JSON.stringify(event));
