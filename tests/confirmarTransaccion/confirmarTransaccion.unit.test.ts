@@ -48,7 +48,7 @@ describe("ConfirmarTransaccionFunction", () => {
       Payload: {
         referencia: "TX999",
         medio: "yape",
-        estado: "pendiente",
+        estado: "rechazado",
         usuarioId: "U789",
       },
     };
