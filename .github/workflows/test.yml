@@ -43,9 +43,9 @@ jobs:
 
       - name: 📊 Reporte de cobertura (opcional)
         run: |
-          npm run test -- --coverage
+          npm run test --coverage
         continue-on-error: true
-      - name: Verificar archivos generados
+      - name: Verificar archivos de cobertura
         run: ls -la coverage 
     
       - name: 📤 Subir resultados (opcional)
