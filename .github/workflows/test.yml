@@ -46,11 +46,8 @@ jobs:
           npm run test -- --coverage
         continue-on-error: true
       - name: Verificar archivos generados
-        run: ls -la coverage                                                                           run: npx
-      
-        
-
-
+        run: ls -la coverage 
+    
       - name: 📤 Subir resultados (opcional)
         if: success()
         uses: actions/upload-artifact@v4
