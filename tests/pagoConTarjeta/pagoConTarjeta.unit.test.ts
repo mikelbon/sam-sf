@@ -1,0 +1,48 @@
+import { handler } from "../../src/lambdas/pagoConTarjeta";
+import { PagoInput } from "../../src/types";
+
+describe("PagoConTarjetaFunction", () => {
+  it("procesa pago exitoso con tarjeta válida", async () => {
+    const event: { Payload: PagoInput } = {
+      Payload: {
+        monto: 150,
+        medio: "tarjeta",
+        usuarioId: "U123",
+      },
+    };
+
+    const result = await handler(event);
+
+    expect(result.Payload.referencia).toMatch(/[a-f0-9\-]{36}/); // UUID v4
+    expect(result.Payload.estado).toBe("aprobado");
+    expect(result.Payload.medio).toBe("tarjeta");
+    expect(result.Payload.monto).toBe(150);
+    expect(result.Payload.usuarioId).toBe("U123");
+  });
+
+  it("lanza error si el medio no es tarjeta", async () => {
+    const event: { Payload: PagoInput } = {
+      Payload: {
+        monto: 150,
+        medio: "yape",
+        usuarioId: "U123",
+      },
+    };
+
+    await expect(handler(event)).rejects.toThrow(
+      "Medio de pago no soportado por este handler: yape"
+    );
+  });
+
+  it("lanza error si el usuario no está identificado", async () => {
+    const event: { Payload: PagoInput } = {
+      Payload: {
+        monto: 150,
+        medio: "tarjeta",
+        usuarioId: "",
+      },
+    };
+
+    await expect(handler(event)).rejects.toThrow("Usuario no identificado");
+  });
+});
