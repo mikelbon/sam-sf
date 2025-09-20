@@ -16,7 +16,9 @@ describe("ConfirmarTransaccionFunction", () => {
     });
 
     const event = {
-      body: JSON.stringify({ referencia: "TX123" }),
+      Payload: {
+        referencia: "TX999",
+      },
     };
 
     const result = await handler(event);
@@ -30,7 +32,9 @@ describe("ConfirmarTransaccionFunction", () => {
     ddbMock.on(GetCommand).resolves({});
 
     const event = {
-      body: JSON.stringify({ referencia: "TX999" }),
+      Payload: {
+        referencia: "TX999",
+      },
     };
 
     const result = await handler(event);
