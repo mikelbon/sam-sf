@@ -10,6 +10,7 @@ jobs:
   test:
     name: 🧪 Pruebas unitarias
     runs-on: ubuntu-latest
+    environment: my_environment
 
     steps:
       - name: 📥 Checkout del código
