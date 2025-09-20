@@ -24,14 +24,14 @@ jobs:
       - name: 📦 Instalar dependencias
         run: npm install
 
-      - name: 🧪 Ejecutar pruebas unitarias
-        run: npm test
+      #- name: 🧪 Ejecutar pruebas unitarias
+      #  run: npm test
 
       - name: Instalar ts-node para notificación
         run: npm install --save-dev ts-node
 
-      #- name: Ejecutar pruebas con cobertura
-      #  run: npx jest --coverage
+      - name: Ejecutar pruebas con cobertura
+        run: npx jest --coverage
         
       - name: Notificar a Slack con cobertura
         run: npx ts-node src/notifySlack.ts
