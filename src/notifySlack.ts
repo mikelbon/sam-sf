@@ -2,31 +2,26 @@ import fs from "fs";
 import https from "https";
 import path from "path";
 
-
 const webhookUrl = process.env.SLACK_WEBHOOK_URL;
 if (!webhookUrl) throw new Error("SLACK_WEBHOOK_URL no está definido");
 
-const coveragePath = path.resolve("coverage", "coverage-summary.json");
-if (!fs.existsSync(coveragePath)) {
+const coverageTextPath = path.resolve("coverage", "coverage.txt");
+if (!fs.existsSync(coverageTextPath)) {
   console.error(
-    "❌ No se encontró coverage-summary.json. ¿Ejecutaste Jest con --coverage?"
+    "❌ No se encontró coverage.txt. ¿Ejecutaste Jest con --coverage?"
   );
   process.exit(1);
 }
-const coverageRaw = fs.readFileSync(coveragePath, "utf8");
-const coverage = JSON.parse(coverageRaw);
 
-const { lines, branches, functions, statements } = coverage.total;
+const coverageText = fs.readFileSync(coverageTextPath, "utf8");
 
 const message = {
   text:
-    `🧪 *Tests completados*\n` +
-    `📊 *Cobertura:*\n` +
-    `• Líneas: ${lines.pct}%\n` +
-    `• Branches: ${branches.pct}%\n` +
-    `• Funciones: ${functions.pct}%\n` +
-    `• Statements: ${statements.pct}%\n` +
-    `✅ Repo: \`${process.env.GITHUB_REPOSITORY}\`\n` +
+    `🧪 *Reporte de cobertura de tests*\n` +
+    "```" +
+    coverageText +
+    "```" + // bloque de código para mantener formato
+    `\n✅ Repo: \`${process.env.GITHUB_REPOSITORY}\`\n` +
     `🌿 Branch: \`${process.env.GITHUB_REF_NAME}\`\n` +
     `👤 Autor: \`${process.env.GITHUB_ACTOR}\``,
 };
