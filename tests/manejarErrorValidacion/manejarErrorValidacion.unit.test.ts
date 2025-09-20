@@ -7,15 +7,44 @@ const snsMock = mockClient(SNSClient);
 beforeEach(() => snsMock.reset());
 
 describe("ManejarErrorValidacionFunction", () => {
-  it("publica mensaje en SNS", async () => {
-    snsMock.on(PublishCommand).resolves({ MessageId: "msg-123" });
-
+  it("retorna el errorMessage desde Cause si es parseable", async () => {
     const event = {
-      body: JSON.stringify({ error: "Validación fallida", usuarioId: "U123" }),
+      Error: "Error genérico",
+      Cause: JSON.stringify({ errorMessage: "Monto inválido" }),
     };
 
-    const result = await handler(event as any);
-    expect(result.statusCode).toBe(200);
-    expect(JSON.parse(result.body).mensaje).toMatch(/notificado/i);
+    const result = await handler(event);
+    expect(result.manejado).toBe(true);
+    expect(result.mensaje).toBe("Monto inválido");
+  });
+
+  it("retorna Error si Cause no tiene errorMessage", async () => {
+    const event = {
+      Error: "Error genérico",
+      Cause: JSON.stringify({ detalle: "sin mensaje" }),
+    };
+
+    const result = await handler(event);
+    expect(result.mensaje).toBe("Error genérico");
+  });
+
+  it("retorna Error si Cause no es parseable", async () => {
+    const event = {
+      Error: "Error genérico",
+      Cause: "<<<malformado>>>",
+    };
+
+    const result = await handler(event);
+    expect(result.mensaje).toBe("Error genérico");
+  });
+
+  it("retorna mensaje por defecto si Error no es string", async () => {
+    const event = {
+      Error: { tipo: "fallo" },
+      Cause: "",
+    };
+
+    const result = await handler(event);
+    expect(result.mensaje).toBe("Error desconocido");
   });
 });
