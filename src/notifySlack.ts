@@ -1,5 +1,7 @@
 import fs from "fs";
 import https from "https";
+import path from "path";
+
 
 const webhookUrl = process.env.SLACK_WEBHOOK_URL;
 if (!webhookUrl) throw new Error("SLACK_WEBHOOK_URL no está definido");
