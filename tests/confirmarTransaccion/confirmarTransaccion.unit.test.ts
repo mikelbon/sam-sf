@@ -7,40 +7,48 @@ const ddbMock = mockClient(DynamoDBDocumentClient);
 beforeEach(() => ddbMock.reset());
 
 describe("ConfirmarTransaccionFunction", () => {
-  it("confirma transacción existente", async () => {
-    ddbMock.on(GetCommand).resolves({
-      Item: {
-        referencia: "TX123",
-        estado: "pendiente",
-      },
-    });
+  beforeEach(() => ddbMock.reset());
+
+  it("confirma transacción válida y registra en DynamoDB", async () => {
+    ddbMock.on(PutItemCommand).resolves({});
 
     const event = {
       Payload: {
-        referencia: "TX999",
+        referencia: "TX123",
+        medio: "tarjeta",
+        estado: "aprobado",
+        usuarioId: "U456",
       },
     };
 
     const result = await handler(event);
+
     expect(result.Payload.confirmado).toBe(true);
-    expect(result.Payload.referencia).toMatch(/^TX\d+/);
-    expect(result.Payload.medio).toMatch(/tarjeta|yape/i);
+    expect(result.Payload.referencia).toBe("TX123");
+    expect(result.Payload.medio).toBe("tarjeta");
     expect(result.Payload.timestamp).toMatch(/\d{4}-\d{2}-\d{2}T/);
+
+    expect(ddbMock).toHaveReceivedCommandWith(PutItemCommand, {
+      TableName: "Transacciones",
+      Item: expect.objectContaining({
+        referencia: { S: "TX123" },
+        medio: { S: "tarjeta" },
+        estado: { S: "aprobado" },
+        usuarioId: { S: "U456" },
+      }),
+    });
   });
 
-  it("retorna error si no existe la transacción", async () => {
-    ddbMock.on(GetCommand).resolves({});
-
+  it("lanza error si el estado no es aprobado", async () => {
     const event = {
       Payload: {
         referencia: "TX999",
+        medio: "yape",
+        estado: "pendiente",
+        usuarioId: "U789",
       },
     };
 
-    const result = await handler(event);
-
-    expect(result.Payload.error).toBe(true);
-    expect(result.Payload.referencia).toBe("TX999");
-    expect(result.Payload.mensaje).toMatch(/no encontrada/i);
+    await expect(handler(event)).rejects.toThrow("Transacción fallida");
   });
 });
