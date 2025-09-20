@@ -4,7 +4,7 @@ import { DynamoDBDocumentClient, GetCommand } from "@aws-sdk/lib-dynamodb";
 import { DynamoDBClient, PutItemCommand } from "@aws-sdk/client-dynamodb";
 import { ConfirmacionInput } from "../../src/types";
 
-const ddbMock = mockClient(DynamoDBDocumentClient);
+const ddbMock = mockClient(DynamoDBClient);
 
 beforeEach(() => ddbMock.reset());
 
@@ -30,6 +30,7 @@ describe("ConfirmarTransaccionFunction", () => {
     expect(result.Payload.medio).toBe("tarjeta");
     expect(result.Payload.timestamp).toMatch(/\d{4}-\d{2}-\d{2}T/);
 
+    expect(ddbMock).toHaveReceivedCommandTimes(PutItemCommand, 1);
     expect(ddbMock).toHaveReceivedCommandWith(PutItemCommand, {
       TableName: "Transacciones",
       Item: expect.objectContaining({
