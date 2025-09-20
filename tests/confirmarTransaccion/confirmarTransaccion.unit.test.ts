@@ -1,3 +1,4 @@
+import 'aws-sdk-client-mock-jest';
 import { handler } from "../../src/lambdas/confirmarTransaccion";
 import { mockClient } from "aws-sdk-client-mock";
 import { DynamoDBDocumentClient, GetCommand } from "@aws-sdk/lib-dynamodb";
