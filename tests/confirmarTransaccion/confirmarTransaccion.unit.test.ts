@@ -1,4 +1,3 @@
-import 'aws-sdk-client-mock-jest';
 import { handler } from "../../src/lambdas/confirmarTransaccion";
 import { mockClient } from "aws-sdk-client-mock";
 import { DynamoDBDocumentClient, GetCommand } from "@aws-sdk/lib-dynamodb";
@@ -31,16 +30,19 @@ describe("ConfirmarTransaccionFunction", () => {
     expect(result.Payload.medio).toBe("tarjeta");
     expect(result.Payload.timestamp).toMatch(/\d{4}-\d{2}-\d{2}T/);
 
-    expect(ddbMock).toHaveReceivedCommandTimes(PutItemCommand, 1);
-    expect(ddbMock).toHaveReceivedCommandWith(PutItemCommand, {
-      TableName: "Transacciones",
-      Item: expect.objectContaining({
-        referencia: { S: "TX123" },
-        medio: { S: "tarjeta" },
-        estado: { S: "aprobado" },
-        usuarioId: { S: "U456" },
-      }),
-    });
+    const calls = ddbMock.commandCalls(PutItemCommand);
+    expect(calls.length).toBe(1);
+    expect(calls[0].args[0].input).toEqual(
+      expect.objectContaining({
+        TableName: "Transacciones",
+        Item: expect.objectContaining({
+          referencia: { S: "TX123" },
+          medio: { S: "tarjeta" },
+          estado: { S: "aprobado" },
+          usuarioId: { S: "U456" },
+        }),
+      })
+    );
   });
 
   it("lanza error si el estado no es aprobado", async () => {
