@@ -4,7 +4,13 @@ import https from "https";
 const webhookUrl = process.env.SLACK_WEBHOOK_URL;
 if (!webhookUrl) throw new Error("SLACK_WEBHOOK_URL no está definido");
 
-const coveragePath = "coverage/coverage-summary.json";
+const coveragePath = path.resolve("coverage", "coverage-summary.json");
+if (!fs.existsSync(coveragePath)) {
+  console.error(
+    "❌ No se encontró coverage-summary.json. ¿Ejecutaste Jest con --coverage?"
+  );
+  process.exit(1);
+}
 const coverageRaw = fs.readFileSync(coveragePath, "utf8");
 const coverage = JSON.parse(coverageRaw);
 
