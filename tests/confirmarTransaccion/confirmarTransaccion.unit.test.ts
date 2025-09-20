@@ -21,7 +21,7 @@ describe("ConfirmarTransaccionFunction", () => {
 
     const result = await handler(event);
     expect(result.Payload.confirmado).toBe(true);
-    expect(result.Payload.referencia).toBeDefined();
+    expect(result.Payload.referencia).toMatch(/^TX\d+/);
     expect(result.Payload.medio).toMatch(/tarjeta|yape/i);
     expect(result.Payload.timestamp).toMatch(/\d{4}-\d{2}-\d{2}T/);
   });
@@ -33,8 +33,10 @@ describe("ConfirmarTransaccionFunction", () => {
       body: JSON.stringify({ referencia: "TX999" }),
     };
 
-    const result = await handler(event as any);
-    expect(result.statusCode).toBe(404);
-    expect(JSON.parse(result.body).mensaje).toMatch(/no encontrada/i);
+    const result = await handler(event);
+
+    expect(result.Payload.error).toBe(true);
+    expect(result.Payload.referencia).toBe("TX999");
+    expect(result.Payload.mensaje).toMatch(/no encontrada/i);
   });
 });
